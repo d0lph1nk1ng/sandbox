@@ -1,0 +1,58 @@
+<HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/vScrollview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ScrollviewActivity" >
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical" >
+
+        <TextView
+            android:id="@+id/txtTri"
+            android:layout_width="360dp"
+            android:layout_height="match_parent"
+            android:layout_margin="10dip"
+            android:background="@color/android_green"
+            android:gravity="center_horizontal|center_vertical"
+            android:singleLine="true"
+            android:text="@string/triangle_view"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/txtCol1"
+            android:layout_width="360dp"
+            android:layout_height="match_parent"
+            android:layout_margin="10dip"
+            android:background="@color/red"
+            android:gravity="center_horizontal|center_vertical"
+            android:singleLine="true"
+            android:text="@string/col_one"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/txtCol2"
+            android:layout_width="360dp"
+            android:layout_height="match_parent"
+            android:layout_margin="10dip"
+            android:background="@color/yellow"
+            android:gravity="center_horizontal|center_vertical"
+            android:singleLine="true"
+            android:text="@string/col_two"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+            android:id="@+id/txtCol3"
+            android:layout_width="360dp"
+            android:layout_height="match_parent"
+            android:layout_margin="10dip"
+            android:background="@color/blue"
+            android:gravity="center_horizontal|center_vertical"
+            android:singleLine="true"
+            android:text="@string/col_three"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+    </LinearLayout>
+
+</HorizontalScrollView>

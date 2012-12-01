@@ -1,5 +1,7 @@
 package com.example.dk.sandbox;
 
+import android.animation.AnimatorInflater;
+import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,8 +52,19 @@ public class AnimationActivity extends Activity {
 	
 	public void startAnimation(View view) {
 		ImageView spaceshipImage = (ImageView)findViewById(R.id.imgDroid);
-		Animation hyperspaceJumpAnimation = AnimationUtils.loadAnimation(this, R.anim.hyperspace_jump);
-		spaceshipImage.startAnimation(hyperspaceJumpAnimation);
+		//Animation hyperspaceJumpAnimation = AnimationUtils.loadAnimation(this, R.anim.hyperspace_jump);
+		//spaceshipImage.startAnimation(hyperspaceJumpAnimation);
+		
+		if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			try {
+				ObjectAnimator anim = (ObjectAnimator)AnimatorInflater.loadAnimator(this, R.anim.flipping); 
+				anim.setTarget(spaceshipImage);
+				anim.setDuration(3000);
+				anim.start();
+			} catch(Exception e) {
+				;
+			}
+		}
 	}
-
+	
 }

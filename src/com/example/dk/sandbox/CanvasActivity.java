@@ -6,16 +6,22 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.SystemClock;
 import android.support.v4.app.NavUtils;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 
 public class CanvasActivity extends Activity {
 
@@ -58,28 +64,42 @@ public class CanvasActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
-	private Context getActivityContext() {
-		return this;
-	}
-	
-	private class MyCanvasView extends View implements View.OnClickListener {
+	private class MyCanvasView extends View {
         
 		private final static String TAG = "MyCanvasView";
-		private final static int PADDING = 20;
-		private final static int RADIUS = PADDING*4;
-		private Paint mPaint = new Paint();
+		private final static int PADDING = 0;
+		private final static int RADIUS = 80;
+		private final static int FPS = 30;
+				
+		private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
         private Path mPath = new Path();
+        private RectF mBackgroundRect = new RectF();
+        private LinearGradient mLineShader;
         private boolean mAnimate;
+        private int mHeadX, mWidth;
 
         public MyCanvasView(Context context) {
             super(context);
 
-            // Construct a wedge-shaped path
-            mPath.moveTo(0, -50);
-            mPath.lineTo(-20, 60);
-            mPath.lineTo(0, 50);
-            mPath.lineTo(20, 60);
-            mPath.close();
+            mHeadX = 0;
+            
+            final DisplayMetrics metrics = new DisplayMetrics();
+        	final WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
+    		wm.getDefaultDisplay().getMetrics(metrics);
+    		mWidth = metrics.widthPixels;
+    		final int h = metrics.heightPixels;
+    		final float d = context.getResources().getDisplayMetrics().density;
+            
+            mPath.lineTo(100, 0);
+            mPath.lineTo(115, (int)(40.0/110.0 * h/4.0));
+            mPath.lineTo(130, (int)(-20.0/110.0 * h/4.0));
+            mPath.lineTo(150, (int)(110.0/110.0 * h/4.0));
+            mPath.lineTo(165, (int)(-100.0/110.0 * h/4.0));
+            mPath.lineTo(180, (int)(0.0/110.0 * h/4.0));
+            mPath.lineTo(380, 0);
+            mPath.lineTo(mWidth-100, 0);		// should stop at about 380
+                        
+            mLineShader = new LinearGradient(0, h/2, mWidth, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP);
         }
 
         @Override
@@ -87,24 +107,36 @@ public class CanvasActivity extends Activity {
         	int w = canvas.getWidth();
             int h = canvas.getHeight();        	
         	Paint paint = mPaint;
-        	paint.setAntiAlias(true);
 
         	// bg color
-            canvas.drawColor(Color.WHITE);
-            
-            // rounded rect bg
-            paint.setColor(Color.CYAN);            
-            canvas.drawRoundRect(new RectF(PADDING, PADDING, w-PADDING, h-PADDING), RADIUS, RADIUS, paint);
-            
-            // compass obj
-            paint.setColor(Color.BLACK);
-            paint.setStyle(Paint.Style.FILL);
-            
-            int cx = w / 2;
-            int cy = h / 2;
+            canvas.drawColor(Color.BLACK);
+          
+            // translate to the left edge of the vertical center
+            canvas.translate(0, h/2);
 
-            canvas.translate(cx, cy);
-            canvas.drawPath(mPath, mPaint);
+            // set the paint obj to draw the line
+            paint.setStyle(Paint.Style.STROKE);
+            paint.setStrokeWidth(5);
+            paint.setColor(Color.GREEN);
+                        
+            // the line path
+            //canvas.drawPath(mPath, paint);
+            
+            // the line tail
+            int tailX = (int)(mHeadX - 0.69*mWidth);
+            paint.setShader(new LinearGradient(tailX, h/2, mHeadX, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP));
+            canvas.drawLine(tailX, 0, mHeadX, 0, paint);
+            
+            // the line head circle
+            canvas.translate(mHeadX, 0);
+            paint.setShader(null);
+            canvas.drawCircle(0, 0, 24, paint);
+            
+            // the line head dot
+            paint.setStyle(Paint.Style.FILL);
+            canvas.drawCircle(0, 0, 12, paint);
+            
+            
         }
         
         @Override
@@ -112,6 +144,7 @@ public class CanvasActivity extends Activity {
             mAnimate = true;
             if (false) Log.d(TAG, "onAttachedToWindow. mAnimate=" + mAnimate);
             super.onAttachedToWindow();
+            mHandler.postDelayed(mUpdateUiTask, 1000/FPS);
         }
 
         @Override
@@ -121,19 +154,22 @@ public class CanvasActivity extends Activity {
             super.onDetachedFromWindow();
         }
 
-		@Override
-		public void onClick(View v) {
-			if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-				try {
-					ObjectAnimator anim = (ObjectAnimator)AnimatorInflater.loadAnimator(getActivityContext(), R.anim.flipping); 
-					anim.setTarget(this);
-					anim.setDuration(3000);
-					anim.start();
-				} catch(Exception e) {
-					;
+		private Handler mHandler = new Handler();
+		
+		private Runnable mUpdateUiTask = new Runnable() {
+			public void run() {
+				invalidate();
+				mHeadX += 0.0138 * mWidth;
+				if(mHeadX > mWidth * 1.69) {
+					mHeadX = -50;
+				}
+				
+				if(mAnimate) {
+					mHandler.postDelayed(this, 1000/FPS);
 				}
 			}
-		}
+		};
+		
     }
-
+	
 }

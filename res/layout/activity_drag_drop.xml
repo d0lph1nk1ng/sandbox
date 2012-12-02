@@ -37,7 +37,7 @@
 	  </TableRow>  
 	</TableLayout>
 
-	<ImageView
+	<com.example.dk.sandbox.DraggableDroid
 	    android:id="@+id/droid"
 	    android:layout_width="150px"
 	    android:layout_height="150px"

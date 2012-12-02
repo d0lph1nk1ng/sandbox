@@ -2,10 +2,12 @@ package com.example.dk.sandbox;
 
 import android.app.Activity;
 import android.content.ClipData;
+import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.DragEvent;
 import android.view.Menu;
@@ -14,7 +16,7 @@ import android.view.View;
 import android.view.View.DragShadowBuilder;
 import android.view.View.OnDragListener;
 import android.view.View.OnLongClickListener;
-import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.RelativeLayout.LayoutParams;
 
 public class DragDropActivity extends Activity {
@@ -113,5 +115,5 @@ public class DragDropActivity extends Activity {
 			return true;
 		}
 	}
-
+	
 }

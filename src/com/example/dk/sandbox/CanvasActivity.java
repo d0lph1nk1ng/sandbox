@@ -1,7 +1,7 @@
 package com.example.dk.sandbox;
 
-import android.animation.AnimatorInflater;
-import android.animation.ObjectAnimator;
+import java.lang.reflect.Field;
+
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -9,12 +9,11 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.RectF;
+import android.graphics.PathMeasure;
 import android.graphics.Shader;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.support.v4.app.NavUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -67,21 +66,19 @@ public class CanvasActivity extends Activity {
 	private class MyCanvasView extends View {
         
 		private final static String TAG = "MyCanvasView";
-		private final static int PADDING = 0;
-		private final static int RADIUS = 80;
 		private final static int FPS = 30;
 				
 		private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
-        private Path mPath = new Path();
-        private RectF mBackgroundRect = new RectF();
+        private Path mPath = new Path(), mSegment = new Path();
+        private PathMeasure mPathMeasure = new PathMeasure(), mPathMeasureSegment = new PathMeasure();
         private LinearGradient mLineShader;
         private boolean mAnimate;
-        private int mHeadX, mWidth;
+        private int mHeadX, mWidth, mHeight;
 
         public MyCanvasView(Context context) {
             super(context);
 
-            mHeadX = 0;
+            mHeadX = -50;
             
             final DisplayMetrics metrics = new DisplayMetrics();
         	final WindowManager wm = (WindowManager)getSystemService(Context.WINDOW_SERVICE);
@@ -90,15 +87,18 @@ public class CanvasActivity extends Activity {
     		final int h = metrics.heightPixels;
     		final float d = context.getResources().getDisplayMetrics().density;
             
-            mPath.lineTo(100, 0);
-            mPath.lineTo(115, (int)(40.0/110.0 * h/4.0));
-            mPath.lineTo(130, (int)(-20.0/110.0 * h/4.0));
-            mPath.lineTo(150, (int)(110.0/110.0 * h/4.0));
-            mPath.lineTo(165, (int)(-100.0/110.0 * h/4.0));
-            mPath.lineTo(180, (int)(0.0/110.0 * h/4.0));
-            mPath.lineTo(380, 0);
-            mPath.lineTo(mWidth-100, 0);		// should stop at about 380
-                        
+    		int xBlip = (int)(mWidth / 2.0);
+    		mPath.lineTo(xBlip, 0);
+            mPath.lineTo(xBlip + 15, (int)(40.0/110.0 * h/4.0));
+            mPath.lineTo(xBlip + 30, (int)(-20.0/110.0 * h/4.0));
+            mPath.lineTo(xBlip + 50, (int)(110.0/110.0 * h/4.0));
+            mPath.lineTo(xBlip + 65, (int)(-100.0/110.0 * h/4.0));
+            mPath.lineTo(xBlip + 80, (int)(0.0/110.0 * h/4.0));
+            mPath.lineTo(mWidth, 0);
+            
+            mPathMeasure.setPath(mPath, false);
+            Log.d(TAG, "path length: " + mPathMeasure.getLength());
+            
             mLineShader = new LinearGradient(0, h/2, mWidth, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP);
         }
 
@@ -106,27 +106,54 @@ public class CanvasActivity extends Activity {
         protected void onDraw(Canvas canvas) {
         	int w = canvas.getWidth();
             int h = canvas.getHeight();        	
-        	Paint paint = mPaint;
+        	mHeight = h;
+            Paint paint = mPaint;
 
         	// bg color
             canvas.drawColor(Color.BLACK);
           
             // translate to the left edge of the vertical center
-            canvas.translate(0, h/2);
+            canvas.translate(0, h/4);
 
             // set the paint obj to draw the line
             paint.setStyle(Paint.Style.STROKE);
+            paint.setColor(Color.GREEN);
+            paint.setStrokeWidth(5f);
+            
+            // draw the segment of the path
+            int tailX = (int)(mHeadX - 0.69*mWidth);
+            mSegment.reset();
+            mPathMeasure.getSegment(Math.min(Math.max(tailX, 0), mWidth), Math.min(Math.max(mHeadX, 0), mWidth), mSegment, true);
+            mPathMeasureSegment.setPath(mSegment, false);
+            float lenSeg = mPathMeasureSegment.getLength();
+            
+            if(lenSeg > 0) {
+            	paint.setShader(new LinearGradient(tailX, h/2, mHeadX, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP));
+            	canvas.drawPath(mSegment, paint);
+            }
+
+            canvas.translate(0, h/4);
+            
+            // draw the entire path
+            canvas.drawPath(mPath, paint);
+            
+            // hide part of the path
+            paint.setStyle(Paint.Style.FILL_AND_STROKE);
+            paint.setShader(null);
+            paint.setColor(Color.BLACK);
+            canvas.drawRect(Math.max(mHeadX, 0.0f), -h/3f, (float)mWidth, h/3f, paint);
+            
+            canvas.translate(0, h/4);
+            
+            paint.setStyle(Paint.Style.STROKE);
             paint.setStrokeWidth(5);
             paint.setColor(Color.GREEN);
-                        
-            // the line path
-            //canvas.drawPath(mPath, paint);
             
             // the line tail
-            int tailX = (int)(mHeadX - 0.69*mWidth);
-            paint.setShader(new LinearGradient(tailX, h/2, mHeadX, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP));
-            canvas.drawLine(tailX, 0, mHeadX, 0, paint);
             
+            //paint.setShader(new LinearGradient(tailX, h/2, mHeadX, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP));
+            //canvas.drawLine(tailX, 0, mHeadX, 0, paint);
+/*                        
             // the line head circle
             canvas.translate(mHeadX, 0);
             paint.setShader(null);
@@ -135,7 +162,7 @@ public class CanvasActivity extends Activity {
             // the line head dot
             paint.setStyle(Paint.Style.FILL);
             canvas.drawCircle(0, 0, 12, paint);
-            
+*/            
             
         }
         
@@ -158,12 +185,16 @@ public class CanvasActivity extends Activity {
 		
 		private Runnable mUpdateUiTask = new Runnable() {
 			public void run() {
-				invalidate();
 				mHeadX += 0.0138 * mWidth;
 				if(mHeadX > mWidth * 1.69) {
 					mHeadX = -50;
 				}
 				
+				int canvasY = (int)(3.0/4.0*mHeight);
+	            int tailX = (int)(mHeadX - 0.69*mWidth);
+				//invalidate(tailX, canvasY-30, mHeadX+30, canvasY+30);
+				invalidate();
+	            
 				if(mAnimate) {
 					mHandler.postDelayed(this, 1000/FPS);
 				}

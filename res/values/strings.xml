@@ -8,6 +8,7 @@
     <string name="title_activity_drag_drop">Drag &amp; Drop Test</string>
     <string name="title_activity_animation">Animation Test</string>
     <string name="title_activity_canvas">Canvas Test</string>
+    <string name="title_example_detail">Example Detail</string>
     <string name="scrollview_test">Scrollview Test</string>
     <string name="drag_amp_drop_test">Drag &amp; Drop Test</string>
     <string name="animation_test">Animation Test</string>

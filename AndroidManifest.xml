@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="8"
+        android:minSdkVersion="11"
         android:targetSdkVersion="16" />
 
     <application
@@ -14,7 +14,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="com.example.dk.sandbox.MainActivity"
+            android:name="com.example.dk.sandbox.ExampleListActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -23,7 +23,19 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="com.example.dk.sandbox.ScrollviewActivity"
+            android:name="com.example.dk.sandbox.ExampleDetailActivity"
+            android:label="@string/title_example_detail"
+            android:parentActivityName=".ExampleListActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".ExampleListActivity" />
+        </activity>
+        <activity
+            android:name="com.example.dk.sandbox.MainActivity"
+            android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name="com.example.dk.sandbox.ScrollviewFragment"
             android:label="@string/title_activity_scrollview"
             android:parentActivityName="MainActivity" >
             <meta-data
@@ -31,7 +43,7 @@
                 android:value="MainActivity" />
         </activity>
         <activity
-            android:name="com.example.dk.sandbox.DragDropActivity"
+            android:name="com.example.dk.sandbox.DragDropFragment"
             android:label="@string/title_activity_drag_drop"
             android:parentActivityName="MainActivity" >
             <meta-data
@@ -39,7 +51,7 @@
                 android:value="MainActivity" />
         </activity>
         <activity
-            android:name="com.example.dk.sandbox.AnimationActivity"
+            android:name="com.example.dk.sandbox.AnimationFragment"
             android:label="@string/title_activity_animation"
             android:parentActivityName="MainActivity" >
             <meta-data
@@ -47,7 +59,7 @@
                 android:value="MainActivity" />
         </activity>
         <activity
-            android:name="com.example.dk.sandbox.CanvasActivity"
+            android:name="com.example.dk.sandbox.CanvasFragment"
             android:label="@string/title_activity_canvas"
             android:parentActivityName="MainActivity" >
             <meta-data

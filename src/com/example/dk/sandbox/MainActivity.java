@@ -24,19 +24,19 @@ public class MainActivity extends Activity {
     }
     
     public void launchScrollviewTest(View view) {
-    	startActivity(new Intent(this, ScrollviewActivity.class));
+    	startActivity(new Intent(this, ScrollviewFragment.class));
     }
     
     public void launchDragDropTest(View view) {
-    	startActivity(new Intent(this, DragDropActivity.class));
+    	startActivity(new Intent(this, DragDropFragment.class));
     }
     
     public void launchAnimationTest(View view) {
-    	startActivity(new Intent(this, AnimationActivity.class));
+    	startActivity(new Intent(this, AnimationFragment.class));
     }
     
     public void launchCanvasTest(View view) {
-    	startActivity(new Intent(this, CanvasActivity.class));
+    	startActivity(new Intent(this, CanvasFragment.class));
     }
     
 }

@@ -1,5 +1,7 @@
 package com.example.dk.sandbox;
 
+import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -7,16 +9,22 @@ import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
+import android.graphics.Point;
+import android.graphics.Rect;
 import android.graphics.Shader;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.LinearInterpolator;
 
 public class MyCanvasView extends View {
     
 	private final static String TAG = "MyCanvasView";
 	private final static int FPS = 30;
+	private final static int DURATION = 4000;
+	private final static int OFFSCREEN = 50;
+	private final static float PERCENT_SCREEN = 0.69f;
 			
 	private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private Path mPath = new Path(), mSegment = new Path();
@@ -24,6 +32,8 @@ public class MyCanvasView extends View {
     private LinearGradient mLineShader;
     private boolean mAnimate;
     private int mHeadX, mWidth, mHeight;
+    private MyPoint mHead;
+    ValueAnimator mTranslateAnim;
 
     public MyCanvasView(final Context context) {
     	this(context, null);
@@ -31,27 +41,35 @@ public class MyCanvasView extends View {
     
     public MyCanvasView(final Context context, AttributeSet attrs) {
         super(context);
-
-        mHeadX = -50;
-    }
-    
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        mWidth = MeasureSpec.getSize(widthMeasureSpec);
-		final int h = MeasureSpec.getSize(heightMeasureSpec);
         
-		int xBlip = (int)(mWidth / 2.0);
-		mPath.lineTo(xBlip, 0);
-        mPath.lineTo(xBlip + 15, (int)(40.0/110.0 * h/4.0));
-        mPath.lineTo(xBlip + 30, (int)(-20.0/110.0 * h/4.0));
-        mPath.lineTo(xBlip + 50, (int)(110.0/110.0 * h/4.0));
-        mPath.lineTo(xBlip + 65, (int)(-100.0/110.0 * h/4.0));
-        mPath.lineTo(xBlip + 80, (int)(0.0/110.0 * h/4.0));
-        mPath.lineTo(mWidth, 0);
-                
-        mLineShader = new LinearGradient(0, h/2, mWidth, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP);
+		post(new Runnable() {
+		    @Override
+		    public void run() {
+		    	mWidth = getWidth();
+				final int h = getHeight();
+		        
+				int xBlip = (int)(mWidth / 2.0);
+				mPath.lineTo(xBlip, 0);
+		        mPath.lineTo(xBlip + 15, (int)(40.0/110.0 * h/4.0));
+		        mPath.lineTo(xBlip + 30, (int)(-20.0/110.0 * h/4.0));
+		        mPath.lineTo(xBlip + 50, (int)(110.0/110.0 * h/4.0));
+		        mPath.lineTo(xBlip + 65, (int)(-100.0/110.0 * h/4.0));
+		        mPath.lineTo(xBlip + 80, (int)(0.0/110.0 * h/4.0));
+		        mPath.lineTo(mWidth, 0);
+		                
+		        mLineShader = new LinearGradient(0, h/2, mWidth, h/2, 0xff000000, 0xff00ff00, Shader.TileMode.CLAMP);
+		    	
+		        mHeadX = -OFFSCREEN;
+		    	mHead = new MyPoint(-OFFSCREEN, h/2);
+		    	
+		    	mTranslateAnim = ObjectAnimator.ofInt(mHead, "x", -OFFSCREEN, mWidth+OFFSCREEN+(int)(mWidth*PERCENT_SCREEN));
+		        mTranslateAnim.setDuration(3000);
+		        mTranslateAnim.setInterpolator(new LinearInterpolator());
+		        mTranslateAnim.setRepeatCount(ValueAnimator.INFINITE);
+		        mTranslateAnim.setRepeatMode(ValueAnimator.RESTART);
+		        mTranslateAnim.start();
+		    } 
+		});
     }
 
     @Override
@@ -72,7 +90,9 @@ public class MyCanvasView extends View {
         paint.setColor(Color.GREEN);
         paint.setStrokeWidth(5f);
         
-        int tailX = (int)(mHeadX - 0.69*mWidth);
+        mHeadX = mHead.getX();
+        
+        int tailX = (int)(mHeadX - PERCENT_SCREEN*mWidth);
 /*     
         // draw the segment of the path
         
@@ -141,12 +161,12 @@ public class MyCanvasView extends View {
 	private Runnable mUpdateUiTask = new Runnable() {
 		public void run() {
 			mHeadX += 0.0138 * mWidth;
-			if(mHeadX > mWidth * 1.69) {
+			if(mHeadX > mWidth * 1+PERCENT_SCREEN) {
 				mHeadX = -50;
 			}
 			
 			int canvasY = (int)(3.0/4.0*mHeight);
-            int tailX = (int)(mHeadX - 0.69*mWidth);
+            int tailX = (int)(mHeadX - PERCENT_SCREEN*mWidth);
 			//invalidate(tailX, canvasY-30, mHeadX+30, canvasY+30);
 			invalidate();
             
@@ -155,5 +175,31 @@ public class MyCanvasView extends View {
 			}
 		}
 	};
+	
+	public class MyPoint extends Point {
+		public MyPoint() {
+			super(0, 0);
+		}
+		
+		public MyPoint(int x, int y) {
+			super(x, y);
+		}
+		
+		public int getX() {
+			return x;
+		}
+		
+		public void setX(int x) {
+			this.x = x;
+		}
+		
+		public int getY() {
+			return y;
+		}
+		
+		public void setY(int y) {
+			this.y = y;
+		}
+	}
 	
 }

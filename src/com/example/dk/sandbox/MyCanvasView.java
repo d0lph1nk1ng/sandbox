@@ -18,11 +18,11 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
-public class MyCanvasView extends View {
+public class MyCanvasView extends View implements ObjectAnimator.AnimatorUpdateListener {
     
 	private final static String TAG = "MyCanvasView";
 	private final static int FPS = 30;
-	private final static int DURATION = 4000;
+	private final static int DURATION = 3000;
 	private final static int OFFSCREEN = 50;
 	private final static float PERCENT_SCREEN = 0.69f;
 			
@@ -41,8 +41,9 @@ public class MyCanvasView extends View {
     
     public MyCanvasView(final Context context, AttributeSet attrs) {
         super(context);
-        
-		post(new Runnable() {
+                
+        final View view = this;
+		view.post(new Runnable() {
 		    @Override
 		    public void run() {
 		    	mWidth = getWidth();
@@ -63,10 +64,11 @@ public class MyCanvasView extends View {
 		    	mHead = new MyPoint(-OFFSCREEN, h/2);
 		    	
 		    	mTranslateAnim = ObjectAnimator.ofInt(mHead, "x", -OFFSCREEN, mWidth+OFFSCREEN+(int)(mWidth*PERCENT_SCREEN));
-		        mTranslateAnim.setDuration(3000);
+		        mTranslateAnim.setDuration(DURATION);
 		        mTranslateAnim.setInterpolator(new LinearInterpolator());
 		        mTranslateAnim.setRepeatCount(ValueAnimator.INFINITE);
 		        mTranslateAnim.setRepeatMode(ValueAnimator.RESTART);
+		        mTranslateAnim.addUpdateListener(getListener());
 		        mTranslateAnim.start();
 		    } 
 		});
@@ -146,36 +148,32 @@ public class MyCanvasView extends View {
         mAnimate = true;
         if (false) Log.d(TAG, "onAttachedToWindow. mAnimate=" + mAnimate);
         super.onAttachedToWindow();
-        mHandler.postDelayed(mUpdateUiTask, 1000/FPS);
+        /*if(mTranslateAnim != null) {
+        	mTranslateAnim.addUpdateListener(this);
+        	mTranslateAnim.start();
+        }*/
     }
 
     @Override
     protected void onDetachedFromWindow() {
         mAnimate = false;
+        if(mTranslateAnim != null) {
+        	mTranslateAnim.cancel();
+        	mTranslateAnim.removeUpdateListener(this);
+        }
         if (false) Log.d(TAG, "onDetachedFromWindow. mAnimate=" + mAnimate);
         super.onDetachedFromWindow();
     }
 
-	private Handler mHandler = new Handler();
-	
-	private Runnable mUpdateUiTask = new Runnable() {
-		public void run() {
-			mHeadX += 0.0138 * mWidth;
-			if(mHeadX > mWidth * 1+PERCENT_SCREEN) {
-				mHeadX = -50;
-			}
-			
-			int canvasY = (int)(3.0/4.0*mHeight);
-            int tailX = (int)(mHeadX - PERCENT_SCREEN*mWidth);
-			//invalidate(tailX, canvasY-30, mHeadX+30, canvasY+30);
-			invalidate();
-            
-			if(mAnimate) {
-				mHandler.postDelayed(this, 1000/FPS);
-			}
-		}
-	};
-	
+    public void onAnimationUpdate(ValueAnimator animation) {
+    	invalidate();
+    	//invalidate(tailX, canvasY-30, mHeadX+30, canvasY+30);
+    }
+    	
+    private ObjectAnimator.AnimatorUpdateListener getListener() {
+    	return this;
+    }
+    
 	public class MyPoint extends Point {
 		public MyPoint() {
 			super(0, 0);
